@@ -1,13 +1,7 @@
 import React, { Component } from 'react';
-import { AppRegistry, Text, View } from 'react-native';
+import { AppRegistry, View } from 'react-native';
+import Greeting from './greeting.js';
 
-class Greeting extends Component {
-  render() {
-      return (
-	      <Text>Hello {this.props.name}! </Text>
-    );
-  }
-}
 
 class LotsOfGreetings extends Component {
     render() {
