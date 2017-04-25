@@ -1,17 +1,36 @@
 import React, { Component } from 'react';
-import { AppRegistry, View } from 'react-native';
-import Greeting from './greeting.js';
+import {AppRegistry, Text, View, ListView} from 'react-native';
+import Realm from 'realm';
 
+class Main extends Component {
+	constructor(props) {
+		super(props);
+		const realm = new Realm(
+			{
+				schema: [
+					{
+						name: 'Dog', 
+						properties: {name: 'string'}
+					}
+				]
+			}
+		);
+		const dogs = realm.objects('Dog');
+		this.state = {
+			doggos: dogs
+		}	
+	}
 
-class LotsOfGreetings extends Component {
-    render() {
-	const names = ['Aids', 'Bob', 'Cancer', 'Diabetes', 'Ebola'].map((name, key) => <Greeting key={key} name={name}/>);
-	return (
-		<View style={{alignItems: 'center'}}>
-		{names}
-	        </View>
-	);
-    }
+	render() {	
+		const dataSource = new ListView.DataSource();
+		return (
+			<View>
+				<Text>
+					Count of Dogs in Realm: {length}
+				</Text>
+			</View>
+		);
+	}
 }
 
-AppRegistry.registerComponent('reactNative', () => LotsOfGreetings);
+AppRegistry.registerComponent('reactNative', () => Main);
