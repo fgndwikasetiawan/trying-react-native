@@ -12,19 +12,20 @@ export default class ItemInfoScreen extends Component {
 
     constructor(props) {
         super(props);
+        let navigationStates = this.props.navigation.state.params;
         this.state = {
             isEditing: false,
             itemInfo: {
-                nama: this.props.item.nama,
-                harga: this.props.item.harga,
-                stok: this.props.item.stok,
-                kadaluarsa: this.props.item.kadaluarsa
+                nama: navigationStates.item.nama,
+                harga: navigationStates.item.harga,
+                stok: navigationStates.item.stok,
+                kadaluarsa: navigationStates.item.kadaluarsa
             },
             editedItemInfo: {
-                nama: this.props.item.nama,
-                harga: this.props.item.harga,
-                stok: this.props.item.stok,
-                kadaluarsa: this.props.item.kadaluarsa
+                nama: navigationStates.item.nama,
+                harga: navigationStates.harga,
+                stok: navigationStates.stok,
+                kadaluarsa: navigationStates.kadaluarsa
             } 
         };
     }
@@ -63,6 +64,12 @@ export default class ItemInfoScreen extends Component {
     }
 
     onSaveButtonPress() {
+        let item = this.props.navigation.state.params.item;
+        item.nama = this.state.editedItemInfo.nama;
+        item.harga = this.state.editedItemInfo.harga;
+        item.stok = this.state.editedItemInfo.stok;
+        item.kadaluarsa = this.state.editedItemInfo.kadaluarsa;
+    
         this.setState({
             itemInfo: {
                 nama: this.state.editedItemInfo.nama,
