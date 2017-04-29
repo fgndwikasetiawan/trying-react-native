@@ -56,9 +56,7 @@ export default class ItemInfoScreen extends Component {
         this.setState({
             editedItemInfo: {
                 nama: this.state.itemInfo.nama,
-                harga: this.state.itemInfo.harga,
-                stok: this.state.itemInfo.stok,
-                kadaluarsa: this.state.itemInfo.kadaluarsa
+                harga: this.state.itemInfo.harga
             }
         });
     }
@@ -67,15 +65,11 @@ export default class ItemInfoScreen extends Component {
         let item = this.props.navigation.state.params.item;
         item.nama = this.state.editedItemInfo.nama;
         item.harga = this.state.editedItemInfo.harga;
-        item.stok = this.state.editedItemInfo.stok;
-        item.kadaluarsa = this.state.editedItemInfo.kadaluarsa;
     
         this.setState({
             itemInfo: {
                 nama: this.state.editedItemInfo.nama,
-                harga: Number(this.state.editedItemInfo.harga),
-                stok: Number(this.state.editedItemInfo.stok),
-                kadaluarsa: this.state.editedItemInfo.kadaluarsa
+                harga: Number(this.state.editedItemInfo.harga)
             }
         });
     }
@@ -87,8 +81,6 @@ export default class ItemInfoScreen extends Component {
                 
                 <ItemInfo name="Nama" value={displayedInfo.nama} type={ItemInfoTypes.TEXT} editMode={this.state.isEditing} onChange={(value) => this.handleValueChange("nama", value)}/>
                 <ItemInfo name="Harga" value={displayedInfo.harga.toString()} type={ItemInfoTypes.TEXT} editMode={this.state.isEditing} onChange={(value) => this.handleValueChange("harga", value)}/>
-                <ItemInfo name="Stok" value={displayedInfo.stok.toString()} type={ItemInfoTypes.TEXT} editMode={this.state.isEditing} onChange={(value) => this.handleValueChange("stok", value)}/>
-                <ItemInfo name="Kadaluarsa" value={displayedInfo.kadaluarsa} type={ItemInfoTypes.TEXT} editMode={this.state.isEditing} onChange={(value) => this.handleValueChange("kadaluarsa", value)}/>
 
                 {
                     this.state.isEditing ? 

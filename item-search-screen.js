@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { AppRegistry, StyleSheet, View, Text, TextInput, TouchableNativeFeedback, ListView, ScrollView } from 'react-native';
-import Database from './database.js';
+import { AppRegistry, StyleSheet, View, Text, TextInput, TouchableNativeFeedback, ListView, ScrollView,
+         ToastAndroid, ActivityIndicator } from 'react-native';
 
 class ItemSearchItem extends Component {
     render() {
@@ -24,20 +24,35 @@ export default class ItemSearchScreen extends Component {
 
     constructor(props) {
         super(props);
-        let db = Database;
-        let items = db.getItems();
-        let dataSource = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}).cloneWithRows(items);
         this.state = {
-            items: items,
-            db: db,
-            listDataSource: dataSource
+            realm: this.props.navigation.state.params.realm,
+            items: false,
+            listDataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
         };
+        //make a promise to fetch items from realm
+        let itemsPromise = new Promise((resolve, reject) => {
+            try {
+                items = this.state.realm.objects('Barang');
+                resolve(items);   
+            } catch (error) {
+                reject(error);
+            }
+        });
+        itemsPromise.then((items) => this.updateItems(items), 
+                          (error) => ToastAndroid.show(error.toString(), ToastAndroid.SHORT));
+    }
+
+    updateItems(items) {
+        this.setState({
+            items: items,
+            listDataSource: this.state.listDataSource.cloneWithRows(items)
+        });
     }
 
     handleSearchTextChange(text) {
         this.setState({
             listDataSource: this.state.listDataSource.cloneWithRows(
-                                this.state.items.filter((item) => item.nama.toLowerCase().contains(text.toLowerCase()))
+                                this.state.items.filtered('nama CONTAINS[c] "' + text + '"')
                             )
         });
     }
@@ -47,6 +62,13 @@ export default class ItemSearchScreen extends Component {
     }
 
     render() {
+        let listBody = this.state.items === false ?
+            <ActivityIndicator style={{paddingTop: "10%", justifyContent: "center", alignItems: "center"}} size="large" color="grey"/> :
+            <ListView dataSource={this.state.listDataSource} renderRow={
+                (rowData) => 
+                    <ItemSearchItem item={rowData} onPress={() => this.onListItemPress(rowData)}/>
+            }/>;
+        
         return (
         <View style={[style.mainContainer]}>
             {/*Search bar*/}
@@ -61,14 +83,10 @@ export default class ItemSearchScreen extends Component {
             <View style={[style.separator]}></View>
             {/*Items list*/}
             <View style={[style.listViewContainer]}>
-                
-                <ListView dataSource={this.state.listDataSource} renderRow={
-                    (rowData) => 
-                        <ItemSearchItem item={rowData} onPress={() => this.onListItemPress(rowData)}/>
-                }/>
-                
+                {listBody}
             </View>
-        </View>);
+        </View>
+        );
     }
 
 }

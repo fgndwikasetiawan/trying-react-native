@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import ItemInfo, { ItemInfoTypes } from './item-info.js';
-import { TouchableOpacity, StyleSheet, View, Text} from 'react-native';
+import { TouchableOpacity, StyleSheet, View, Text, ToastAndroid } from 'react-native';
 
 export default class AddItemScreen extends Component {
+
     static navigationOptions = {
         title: 'Tambah barang',
         headerStyle: {
@@ -14,22 +15,63 @@ export default class AddItemScreen extends Component {
         headerTintColor: 'white'
     }
 
-    handleValueChange(property, value) {
+    constructor(props) {
+        super(props);
+        this.state = {
+            itemInfo: {
+                nama: '',
+                harga: ''
+            },
+            realm: this.props.navigation.state.params.realm
+        };
+    }
 
+    handleValueChange(property, value) {
+        let newItemInfo = {
+            nama: this.state.itemInfo.nama,
+            harga: this.state.itemInfo.harga
+        }
+        newItemInfo[property] = value;
+        this.setState({
+            itemInfo: newItemInfo
+        })
+    }
+
+    saveItem() {
+        try {
+            this.state.realm.write(() =>
+                {   
+                    this.state.realm.create('Barang', {nama: this.state.itemInfo.nama, harga: Number(this.state.itemInfo.harga)})
+                }
+            );    
+            ToastAndroid.show('data ' + this.state.itemInfo.nama + ' berhasil disimpan', 5);
+            this.reset();
+        } catch (error) {
+            if (error.toString().endsWith(' existing primary key value.')) {
+                ToastAndroid.show('penyimpanan gagal: data ' + this.state.itemInfo.nama + ' sudah ada dalam database', 10);
+            }
+        }
+    }
+
+    reset() {
+        this.setState({
+            itemInfo: {
+                nama: '',
+                harga: ''
+            }
+        });
     }
 
     render() {
         return(
         <View style={{paddingTop: 10}}>
-            <ItemInfo name="Nama"  type={ItemInfoTypes.TEXT} editMode={true} onChange={(value) => this.handleValueChange("nama", value)}/>
-            <ItemInfo name="Harga" type={ItemInfoTypes.TEXT} editMode={true} onChange={(value) => this.handleValueChange("harga", value)}/>
-            <ItemInfo name="Stok" type={ItemInfoTypes.TEXT} editMode={true} onChange={(value) => this.handleValueChange("stok", value)}/>
-            <ItemInfo name="Kadaluarsa" type={ItemInfoTypes.TEXT} editMode={true} onChange={(value) => this.handleValueChange("kadaluarsa", value)}/>
+            <ItemInfo name="Nama" value={this.state.itemInfo.nama} type={ItemInfoTypes.TEXT} editMode={true} onChange={(value) => this.handleValueChange("nama", value)}/>
+            <ItemInfo name="Harga" value={this.state.itemInfo.harga} type={ItemInfoTypes.TEXT} editMode={true} onChange={(value) => this.handleValueChange("harga", value)}/>
             <View style={{marginTop: 10, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
-                <TouchableOpacity style={[style.button, {backgroundColor: '#49f', marginRight: 5}]}>
+                <TouchableOpacity style={[style.button, {backgroundColor: '#49f', marginRight: 5}]} onPress={() => this.saveItem()}>
                     <Text style={[style.buttonText, {color: 'white'}]}>SIMPAN</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[style.button, {backgroundColor: 'grey', marginRight: 5}]}>
+                <TouchableOpacity style={[style.button, {backgroundColor: 'grey', marginRight: 5}]} onPress={() => this.reset()}>
                     <Text style={[style.buttonText, {color: 'white'}]}>BATALKAN</Text>
                 </TouchableOpacity>
             </View>
@@ -40,10 +82,10 @@ export default class AddItemScreen extends Component {
 
 const style = StyleSheet.create({
     button: { 
-        paddingTop: 5,
-        paddingBottom: 5,
-        paddingLeft: 10,
-        paddingRight: 10,
+        paddingTop: 10,
+        paddingBottom: 10,
+        paddingLeft: 20,
+        paddingRight: 20,
 		marginTop: 10,
 		borderRadius: 5, 
 		backgroundColor: "#5af", 

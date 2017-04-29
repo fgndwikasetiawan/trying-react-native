@@ -2,27 +2,66 @@ import React, { Component } from 'react';
 import ItemInfoScreen from './item-info-screen.js';
 import ItemSearchScreen from './item-search-screen.js';
 import AddItemScreen from './add-item-screen.js';
-import { AppRegistry, Button, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { AppRegistry, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ToastAndroid } from 'react-native';
 import { StackNavigator, DrawerNavigator } from 'react-navigation';
-import Database from './database.js';
+import Realm from 'realm';
+import { Barang, Stok } from './database.js';
+
+const REALM_SERVER = '128.199.186.34:9080';
 
 class Main extends React.Component {
-	constructor(props) {
-		super(props);
-		let db = Database;
-		let items = db.getItems();
-		this.state = {
-			db: db,
-			item: items[0]
-		}
-	}
 
 	static navigationOptions = {
 		headerVisible: false
 	};
 
+	constructor(props) {
+		super(props);
+		this.state = {
+			isReady: false
+		};
+
+		//Make a realm object synced with the server
+		Realm.Sync.User.login('http://' + REALM_SERVER, 'maria.setiawati0801@gmail.com', 'palasari',
+			(error, user) => {
+				if (!error) {
+					let realm = new Realm({
+						sync: {
+							url: 'realm://' + REALM_SERVER + '/~/test-realm',
+							user: user
+						},
+						schema: [Barang, Stok]
+					});
+					this.onDatabaseReady(realm);
+				} else {
+					this.onDatabaseError(error);
+				}
+			}
+		)
+	}
+
+	onDatabaseReady(realm) {
+		this.setState({
+			isReady: true,
+			realm: realm
+		})
+	}
+
+	onDatabaseError(error) {
+		ToastAndroid.show(error.toString(), ToastAndroid.SHORT);
+	}
+
 	render() {	
 		const {navigate} = this.props.navigation;
+
+		if (!this.state.isReady) {
+			return (
+				<View style={{height: "100%", flexDirection: "column", justifyContent: "center", alignItems: "center"}}>
+					<ActivityIndicator size="large" color="grey"/>
+				</View>
+			);
+		}
+
 		return(
 			<View>
 				<View style={{paddingTop: 10}}>
@@ -31,13 +70,13 @@ class Main extends React.Component {
 				<View>
 					<TouchableOpacity 
 					 style={style.button}
-					 onPress={() => navigate('ItemSearch', {item: this.state.item})} >
+					 onPress={() => navigate('ItemSearch', {realm: this.state.realm})} >
 					 	<Text style={style.buttonText}>CARI BARANG</Text>
 					 </TouchableOpacity>
 
 					 <TouchableOpacity 
 					 style={style.button}
-					 onPress={() => navigate('AddItem', {item: this.state.item})} >
+					 onPress={() => navigate('AddItem', {realm: this.state.realm})} >
 					 	<Text style={style.buttonText}>TAMBAH BARANG</Text>
 					 </TouchableOpacity>
 				</View>
@@ -46,7 +85,7 @@ class Main extends React.Component {
 	}
 }
 
-//Navigation
+// Navigation
 
 const style = StyleSheet.create({
 	button: { 
