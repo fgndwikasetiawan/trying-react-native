@@ -5,7 +5,7 @@ import AddItemScreen from './add-item-screen.js';
 import { AppRegistry, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ToastAndroid } from 'react-native';
 import { StackNavigator, DrawerNavigator } from 'react-navigation';
 import Realm from 'realm';
-import { Barang, Stok } from './database.js';
+import { Barang, Stok, REALM_SCHEMA_VERSION } from './database.js';
 
 const REALM_SERVER = '128.199.186.34:9080';
 
@@ -30,7 +30,8 @@ class Main extends React.Component {
 							url: 'realm://' + REALM_SERVER + '/~/test-realm',
 							user: user
 						},
-						schema: [Barang, Stok]
+						schema: [Barang, Stok],
+						schemaVersion: REALM_SCHEMA_VERSION
 					});
 					this.onDatabaseReady(realm);
 				} else {

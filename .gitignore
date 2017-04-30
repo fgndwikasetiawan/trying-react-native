@@ -57,3 +57,4 @@ fastlane/screenshots
 android/
 __tests__/
 ios/
+*~

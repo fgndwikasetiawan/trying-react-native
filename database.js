@@ -2,6 +2,7 @@ export class Stok {}
 Stok.schema = {
     name: 'Stok',
     properties: {
+        kadaluarsa: 'date',
         stok: 'int'
     }
 }
@@ -16,3 +17,5 @@ Barang.schema = {
         stok: {type: 'list', objectType: 'Stok'}
     }
 }
+
+export const REALM_SCHEMA_VERSION = 1;
