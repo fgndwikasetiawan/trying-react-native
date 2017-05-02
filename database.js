@@ -10,12 +10,17 @@ Stok.schema = {
 export class Barang {}
 Barang.schema = {
     name: 'Barang',
-    primaryKey: 'nama',
+    primaryKey: '_id',
     properties: {
-        nama: 'string',
+        _id: {type: 'string'},
+        nama: {type: 'string', indexed: true},
         harga: 'int',
         stok: {type: 'list', objectType: 'Stok'}
     }
 }
 
-export const REALM_SCHEMA_VERSION = 1;
+export const RealmConfigs = {
+    SCHEMA_VERSION: 1,
+    SERVER_ADDRESS: 'http://128.199.186.34:9080',
+    SYNC_URL: 'realm://128.199.186.34:9080/~/test-realm2'
+}

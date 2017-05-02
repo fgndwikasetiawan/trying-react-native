@@ -18,7 +18,7 @@ export default class ItemInfo extends Component {
         if (this.props.editMode) {
             if (this.props.type === ItemInfoTypes.TEXT) {
                 field = <TextInput 
-                            style={[style.field, this.props.style]}
+                            style={[style.field, style.inputField, this.props.style]}
                             value={this.props.value.toString()} 
                             onChangeText={(text) => this.props.onChange(text)}
                         />
@@ -43,7 +43,7 @@ export default class ItemInfo extends Component {
                             });
                         }
                     }>
-                    <Text style={[style.field, {paddingTop:15, paddingBottom: 4, borderBottomWidth: 1, borderBottomColor: 'grey'}]}>{toDisplay}</Text>
+                    <Text style={[style.field, style.inputField, {paddingTop:15, paddingBottom: 4, paddingBottom: 10}]}>{toDisplay}</Text>
                 </TouchableOpacity>
             }
         }
@@ -81,6 +81,14 @@ const style = StyleSheet.create({
     field: {
         fontSize: 20,
         marginTop: 5,
+        marginLeft: 5,
+        marginRight: 5,
+        paddingLeft: 5,
+        paddingRight: 5,
         marginBottom: 10
+    },
+    inputField: {
+        backgroundColor: 'white',
+        borderRadius: 10
     }
-})
+});

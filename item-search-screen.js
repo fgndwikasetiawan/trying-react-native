@@ -58,7 +58,7 @@ export default class ItemSearchScreen extends Component {
     }
 
     onListItemPress(item){
-        this.props.navigation.navigate('ItemInfo', {item: item});
+        this.props.navigation.navigate('ItemInfo', {item: item, realm: this.props.navigation.state.params.realm});
     }
 
     render() {

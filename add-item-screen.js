@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ItemInfo, { ItemInfoTypes } from './item-info.js';
 import { TouchableOpacity, StyleSheet, View, Text, ToastAndroid, ScrollView, Dimensions } from 'react-native';
-import { DeleteCircleButton, AddCircleButton } from './buttons.js';
+import { Button, DeleteCircleButton, AddCircleButton } from './buttons.js';
 
 export default class AddItemScreen extends Component {
 
@@ -35,31 +35,33 @@ export default class AddItemScreen extends Component {
             stok: this.state.itemInfo.stok.slice()
         }
 
-        if (Number(index) !== NaN) {
+        if (!isNaN(Number(index))) {
             newItemInfo.stok[index][property] = value;
-            ToastAndroid.show(newItemInfo.stok[index]['kadaluarsa'], ToastAndroid.SHORT);
         }
         else {
             newItemInfo[property] = value;
         }
         this.setState({
             itemInfo: newItemInfo
-        })
+        });
     }
 
     saveItem() {
+        let stok = this.state.itemInfo.stok.map((stokInfo) => {
+            let s = Number(stokInfo.stok);
+            s = isNaN(s) ? 0 : s;
+            return {kadaluarsa: stokInfo.kadaluarsa, stok: s};
+        })
         try {
             this.state.realm.write(() =>
                 {   
-                    this.state.realm.create('Barang', {nama: this.state.itemInfo.nama, harga: Number(this.state.itemInfo.harga), stok: this.state.itemInfo.stok});
+                    this.state.realm.create('Barang', {_id: (new Date()).toISOString(), nama: this.state.itemInfo.nama, harga: Number(this.state.itemInfo.harga), stok: stok});
                 }
             );    
             ToastAndroid.show('data ' + this.state.itemInfo.nama + ' berhasil disimpan', 5);
             this.reset();
         } catch (error) {
-            if (error.toString().endsWith(' existing primary key value.')) {
-                ToastAndroid.show('penyimpanan gagal: data ' + this.state.itemInfo.nama + ' sudah ada dalam database', 10);
-            }
+            ToastAndroid.show(error.toString(), 10);
         }
     }
 
@@ -74,7 +76,6 @@ export default class AddItemScreen extends Component {
     }
 
     deleteStokRow(index) {
-        index = index - 1;
         let oldStok = this.state.itemInfo.stok;
         let stok = oldStok.slice(0,index).concat(oldStok.slice(index+1));
         this.setState({
@@ -100,65 +101,45 @@ export default class AddItemScreen extends Component {
 
     render() {
         let rows = [];
-        for (i=0; i<this.state.itemInfo.stok.length; i++) {
+        for (let i=0; i<this.state.itemInfo.stok.length; i++) {
             rows.push(
                 <View key={i} style={{flexDirection: 'row'}}>
                     <View style={{width: "60%"}}>
                         <ItemInfo name="Tgl. Kadaluarsa" value={this.state.itemInfo.stok[i].kadaluarsa} 
                                   type={ItemInfoTypes.DATE} editMode={true}
-                                  onChange={(value) => this.handleValueChange('kadaluarsa', value, i-1)}/>
+                                  onChange={(value) => this.handleValueChange('kadaluarsa', value, i)}/>
                     </View>
                     <View style={{width: "30%"}}>
                         <ItemInfo name="Stok" value={this.state.itemInfo.stok[i].stok}
                                   type={ItemInfoTypes.TEXT} editMode={true}
-                                  onChange={(value) => this.handleValueChange('stok', value, i-1)}/>
+                                  onChange={(value) => this.handleValueChange('stok', value, i)}/>
                     </View>
-                    <DeleteCircleButton onPress={() => this.deleteStokRow(i)} />
+                    <View style={{justifyContent: 'center', alignItems: 'center', marginLeft: 5}}>
+                        <DeleteCircleButton onPress={() => this.deleteStokRow(i)} />
+                    </View>
                 </View>
             );
         }
         return(
         <ScrollView>
             <View style={{paddingTop: 10, paddingBottom: 30}}>
-                <ItemInfo name={typeof this.state.itemInfo.stok.length} value={this.state.itemInfo.nama} type={ItemInfoTypes.TEXT} editMode={true} onChange={(value) => this.handleValueChange("nama", value)}/>
+                <ItemInfo name="Nama" value={this.state.itemInfo.nama} type={ItemInfoTypes.TEXT} editMode={true} onChange={(value) => this.handleValueChange("nama", value)}/>
                 <ItemInfo name="Harga" value={this.state.itemInfo.harga} type={ItemInfoTypes.TEXT} editMode={true} onChange={(value) => this.handleValueChange("harga", value)}/>
                 
                 <Text style={{color: "grey", fontWeight: "bold", fontSize: 20, marginBottom: 20}}>Stok: </Text>
 
                 {rows}
 
-                <View style={{marginLeft: 50}}>
+                <View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 20}}>
                     <AddCircleButton scale={2} onPress={() => this.addStokRow()} />
                 </View>
 
                 <View style={{marginTop: 10, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
-                    <TouchableOpacity style={[style.button, {backgroundColor: '#49f', marginRight: 5}]} onPress={() => this.saveItem()}>
-                        <Text style={[style.buttonText, {color: 'white'}]}>SIMPAN</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[style.button, {backgroundColor: 'grey', marginRight: 5}]} onPress={() => this.reset()}>
-                        <Text style={[style.buttonText, {color: 'white'}]}>BATALKAN</Text>
-                    </TouchableOpacity>
+                    <Button color='#49f' style={{marginRight: 5}} title='simpan' onPress={() => this.saveItem()}/>
+                    <Button color='grey' style={{marginRight: 5}} title='batalkan' onPress={() => this.reset()} />
                 </View>
             </View>
         </ScrollView>
         );
     }
 }
-
-const style = StyleSheet.create({
-    button: { 
-        paddingTop: 10,
-        paddingBottom: 10,
-        paddingLeft: 20,
-        paddingRight: 20,
-		marginTop: 10,
-		borderRadius: 5, 
-		backgroundColor: "#5af", 
-		justifyContent: "center", 
-		alignItems: "center",
-		elevation: 5
-	},
-    buttonText: {
-        fontWeight: 'bold'
-    }
-})

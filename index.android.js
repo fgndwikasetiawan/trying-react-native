@@ -5,9 +5,7 @@ import AddItemScreen from './add-item-screen.js';
 import { AppRegistry, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ToastAndroid } from 'react-native';
 import { StackNavigator, DrawerNavigator } from 'react-navigation';
 import Realm from 'realm';
-import { Barang, Stok, REALM_SCHEMA_VERSION } from './database.js';
-
-const REALM_SERVER = '128.199.186.34:9080';
+import { Barang, Stok, RealmConfigs } from './database.js';
 
 class Main extends React.Component {
 
@@ -22,16 +20,16 @@ class Main extends React.Component {
 		};
 
 		//Make a realm object synced with the server
-		Realm.Sync.User.login('http://' + REALM_SERVER, 'maria.setiawati0801@gmail.com', 'palasari',
+		Realm.Sync.User.login(RealmConfigs.SERVER_ADDRESS, 'maria.setiawati0801@gmail.com', 'palasari',
 			(error, user) => {
 				if (!error) {
 					let realm = new Realm({
 						sync: {
-							url: 'realm://' + REALM_SERVER + '/~/test-realm',
+							url: RealmConfigs.SYNC_URL,
 							user: user
 						},
 						schema: [Barang, Stok],
-						schemaVersion: REALM_SCHEMA_VERSION
+						schemaVersion: RealmConfigs.SCHEMA_VERSION
 					});
 					this.onDatabaseReady(realm);
 				} else {
