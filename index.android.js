@@ -16,27 +16,33 @@ class Main extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			isReady: false
+			isReady: false,
+			realm: new Realm({
+				schema: [Barang, Stok],
+				schemaVersion: 3
+			}),
+			isReady: true
 		};
 
-		//Make a realm object synced with the server
-		Realm.Sync.User.login(RealmConfigs.SERVER_ADDRESS, 'maria.setiawati0801@gmail.com', 'palasari',
-			(error, user) => {
-				if (!error) {
-					let realm = new Realm({
-						sync: {
-							url: RealmConfigs.SYNC_URL,
-							user: user
-						},
-						schema: [Barang, Stok],
-						schemaVersion: RealmConfigs.SCHEMA_VERSION
-					});
-					this.onDatabaseReady(realm);
-				} else {
-					this.onDatabaseError(error);
-				}
-			}
-		)
+
+		// //Make a realm object synced with the server
+		// Realm.Sync.User.login(RealmConfigs.SERVER_ADDRESS, 'maria.setiawati0801@gmail.com', 'palasari',
+		// 	(error, user) => {
+		// 		if (!error) {
+		// 			let realm = new Realm({
+		// 				sync: {
+		// 					url: RealmConfigs.SYNC_URL,
+		// 					user: user
+		// 				},
+		// 				schema: [Barang, Stok],
+		// 				schemaVersion: RealmConfigs.SCHEMA_VERSION
+		// 			});
+		// 			this.onDatabaseReady(realm);
+		// 		} else {
+		// 			this.onDatabaseError(error);
+		// 		}
+		// 	}
+		// );
 	}
 
 	onDatabaseReady(realm) {

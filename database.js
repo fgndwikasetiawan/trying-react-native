@@ -15,7 +15,10 @@ Barang.schema = {
         _id: {type: 'string'},
         nama: {type: 'string', indexed: true},
         harga: 'int',
-        stok: {type: 'list', objectType: 'Stok'}
+        kategori: {type: 'string', default: ''},
+        stok: {type: 'list', objectType: 'Stok'},
+        thresholdKadaluarsa: 'int',
+        thresholdStok: 'int'
     }
 }
 

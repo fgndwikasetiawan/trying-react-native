@@ -11,7 +11,8 @@ export class DeleteCircleButton extends Component {
                 height: 20 * scale,
                 borderRadius: 10 * scale,
                 justifyContent: 'center',
-                alignItems: 'center'
+                alignItems: 'center',
+                elevation: 5
             }, this.props.style]} onPress={() => {this.props.onPress ? this.props.onPress() : false}}>
                 <Text style={{fontFamily: 'sans-serif', fontWeight: 'bold', color: 'white', fontSize: 16 * scale}}>X</Text>
             </TouchableOpacity>
@@ -29,7 +30,8 @@ export class AddCircleButton extends Component {
                 height: 20 * scale,
                 borderRadius: 10 * scale,
                 justifyContent: 'center',
-                alignItems: 'center'
+                alignItems: 'center',
+                elevation: 5
             }, this.props.style]} onPress={() => {this.props.onPress ? this.props.onPress() : false}}>
                 <Text style={{fontFamily: 'sans-serif', fontWeight: 'bold', color: 'white', fontSize: 16 * scale}}>+</Text>
             </TouchableOpacity>  

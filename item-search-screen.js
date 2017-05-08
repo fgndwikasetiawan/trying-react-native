@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { AppRegistry, StyleSheet, View, Text, TextInput, TouchableNativeFeedback, ListView, ScrollView,
          ToastAndroid, ActivityIndicator } from 'react-native';
+import { NavigationActions } from 'react-navigation';
 
 class ItemSearchItem extends Component {
     render() {
@@ -16,7 +17,7 @@ class ItemSearchItem extends Component {
 
 export default class ItemSearchScreen extends Component {
     static navigationOptions = {
-        title: 'Cari barang',
+        title: 'Cari Barang',
         headerStyle: {backgroundColor: "#5af"},
         headerTitleStyle: {color: "white"},
         headerTintColor: "white"
@@ -27,39 +28,59 @@ export default class ItemSearchScreen extends Component {
         this.state = {
             realm: this.props.navigation.state.params.realm,
             items: false,
+            searchText: '',
             listDataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
         };
         //make a promise to fetch items from realm
+        this.refreshItems();
+    }
+
+    refreshItems() {
         let itemsPromise = new Promise((resolve, reject) => {
             try {
                 items = this.state.realm.objects('Barang');
-                resolve(items);   
-            } catch (error) {
+                resolve(items);
+            }
+            catch (error) {
                 reject(error);
             }
         });
-        itemsPromise.then((items) => this.updateItems(items), 
-                          (error) => ToastAndroid.show(error.toString(), ToastAndroid.SHORT));
+        itemsPromise.then(
+            (items) => {
+                        this.setState({
+                           items: items,
+                           listDataSource: this.state.listDataSource.cloneWithRows(items) 
+                        });
+                        this.handleSearchTextChange(this.state.searchText);
+            },
+            (error) => ToastAndroud.show(error.toString(), ToastAndroid.SHORT)
+        );
     }
 
-    updateItems(items) {
+    clearItems() {
         this.setState({
-            items: items,
-            listDataSource: this.state.listDataSource.cloneWithRows(items)
-        });
+            items: false,
+            listDataSource: this.state.listDataSource.cloneWithRows([])
+        })
     }
 
     handleSearchTextChange(text) {
-        this.setState({
-            listDataSource: this.state.listDataSource.cloneWithRows(
-                                this.state.items.filtered('nama CONTAINS[c] "' + text + '"')
-                            )
-        });
+        if (this.state.items.filtered) { 
+            this.setState({
+                searchText: text,
+                listDataSource: this.state.listDataSource.cloneWithRows(
+                                    this.state.items.filtered('nama CONTAINS[c] "' + text + '"')
+                                )
+            })
+        }
     }
 
     onListItemPress(item){
-        this.props.navigation.navigate('ItemInfo', {item: item, realm: this.props.navigation.state.params.realm});
+        let realm = this.state.realm;
+        this.props.navigation.goBack();
+        this.props.navigation.navigate('ItemInfo', {item: item, realm: realm, itemSearchScreen: this});
     }
+
 
     render() {
         let listBody = this.state.items === false ?
@@ -74,7 +95,7 @@ export default class ItemSearchScreen extends Component {
             {/*Search bar*/}
             <View style={[style.searchBarContainer]}>
                 <View style={[style.searchBar]}>
-                    <TextInput style={[style.searchBarTextInput]} placeholder="Ketikkan nama barang..." underlineColorAndroid="transparent"
+                    <TextInput style={[style.searchBarTextInput]} value={this.state.searchText} placeholder="Ketikkan nama barang..." underlineColorAndroid="transparent"
                                 onChangeText={(text) => this.handleSearchTextChange(text)}
                     />
                 </View>

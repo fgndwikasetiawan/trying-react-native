@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import ItemInfo, { ItemInfoTypes } from './item-info.js';
 import { TouchableOpacity, StyleSheet, View, Text, ToastAndroid, ScrollView, Dimensions } from 'react-native';
 import { Button, DeleteCircleButton, AddCircleButton } from './buttons.js';
+import { HorizontalBar } from './misc-components.js';
 
 export default class AddItemScreen extends Component {
 
@@ -22,7 +23,9 @@ export default class AddItemScreen extends Component {
             itemInfo: {
                 nama: '',
                 harga: '',
-                stok: []
+                stok: [],
+                thresholdKadaluarsa: '',
+                thresholdStok: ''
             },
             realm: this.props.navigation.state.params.realm
         };
@@ -32,7 +35,9 @@ export default class AddItemScreen extends Component {
         let newItemInfo = {
             nama: this.state.itemInfo.nama,
             harga: this.state.itemInfo.harga,
-            stok: this.state.itemInfo.stok.slice()
+            stok: this.state.itemInfo.stok.slice(),
+            thresholdKadaluarsa: this.state.itemInfo.thresholdKadaluarsa,
+            thresholdStok: this.state.itemInfo.thresholdStok
         }
 
         if (!isNaN(Number(index))) {
@@ -55,7 +60,13 @@ export default class AddItemScreen extends Component {
         try {
             this.state.realm.write(() =>
                 {   
-                    this.state.realm.create('Barang', {_id: (new Date()).toISOString(), nama: this.state.itemInfo.nama, harga: Number(this.state.itemInfo.harga), stok: stok});
+                    this.state.realm.create('Barang', 
+                        {_id: (new Date()).toISOString(), 
+                         nama: this.state.itemInfo.nama, 
+                         harga: Number(this.state.itemInfo.harga) || 0, 
+                         stok: stok,
+                         thresholdKadaluarsa: Number(this.state.itemInfo.thresholdKadaluarsa) || 0,
+                         thresholdStok: Number(this.state.itemInfo.thresholdStok)} || 0);
                 }
             );    
             ToastAndroid.show('data ' + this.state.itemInfo.nama + ' berhasil disimpan', 5);
@@ -70,7 +81,9 @@ export default class AddItemScreen extends Component {
             itemInfo: {
                 nama: '',
                 harga: '',
-                stok: []
+                stok: [],
+                thresholdKadaluarsa: '',
+                thresholdStok: ''
             }
         });
     }
@@ -78,24 +91,20 @@ export default class AddItemScreen extends Component {
     deleteStokRow(index) {
         let oldStok = this.state.itemInfo.stok;
         let stok = oldStok.slice(0,index).concat(oldStok.slice(index+1));
+        let updatedItemInfo = this.state.itemInfo;
+        updatedItemInfo.stok = stok;
         this.setState({
-            itemInfo: {
-                nama: this.state.itemInfo.nama,
-                harga: this.state.itemInfo.harga,
-                stok: stok
-            }
+            itemInfo: updatedItemInfo
         });
     }
 
     addStokRow() {
         let stok = this.state.itemInfo.stok.slice();
-        stok.push({stok: 0});
+        stok.push({kadaluarsa: new Date(), stok: 0});
+        let updatedItemInfo = this.state.itemInfo;
+        updatedItemInfo.stok = stok;
         this.setState({
-            itemInfo: {
-                nama: this.state.itemInfo.nama,
-                harga: this.state.itemInfo.harga,
-                stok: stok
-            }
+            itemInfo: updatedItemInfo
         });
     }
 
@@ -122,11 +131,17 @@ export default class AddItemScreen extends Component {
         }
         return(
         <ScrollView>
-            <View style={{paddingTop: 10, paddingBottom: 30}}>
+            <View style={{paddingLeft: 5, paddingRight: 5, paddingTop: 10, paddingBottom: 30}}>
                 <ItemInfo name="Nama" value={this.state.itemInfo.nama} type={ItemInfoTypes.TEXT} editMode={true} onChange={(value) => this.handleValueChange("nama", value)}/>
                 <ItemInfo name="Harga" value={this.state.itemInfo.harga} type={ItemInfoTypes.TEXT} editMode={true} onChange={(value) => this.handleValueChange("harga", value)}/>
                 
-                <Text style={{color: "grey", fontWeight: "bold", fontSize: 20, marginBottom: 20}}>Stok: </Text>
+                <HorizontalBar />
+                <Text style={{color: "grey", fontWeight: "bold", fontSize: 20, marginBottom: 20}}>Batas Stok / Kadaluarsa </Text>
+                <ItemInfo name="Stok Minimal" value={this.state.itemInfo.thresholdStok} type={ItemInfoTypes.TEXT} editMode={true} onChange={(value) => this.handleValueChange("thresholdStok", value)}/>
+                <ItemInfo name="Jarak Kadaluarsa Minimal (dalam hari)" value={this.state.itemInfo.thresholdKadaluarsa} type={ItemInfoTypes.TEXT} editMode={true} onChange={(value) => this.handleValueChange("thresholdKadaluarsa", value)}/>
+
+                <HorizontalBar />
+                <Text style={{color: "grey", fontWeight: "bold", fontSize: 20, marginBottom: 20}}>Stok </Text>
 
                 {rows}
 

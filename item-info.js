@@ -18,6 +18,7 @@ export default class ItemInfo extends Component {
         if (this.props.editMode) {
             if (this.props.type === ItemInfoTypes.TEXT) {
                 field = <TextInput 
+                            underlineColorAndroid='transparent'
                             style={[style.field, style.inputField, this.props.style]}
                             value={this.props.value.toString()} 
                             onChangeText={(text) => this.props.onChange(text)}
@@ -30,7 +31,8 @@ export default class ItemInfo extends Component {
                 if (value && value.getTime && value.getTime() > (new Date()).getTime()) {
                     const month = (value.getMonth() < 10 ? '0' : '') + value.getMonth();
                     const date = (value.getDate() < 10 ? '0' : '') + value.getDate();
-                    toDisplay = value.getFullYear() + '-' + month + '-' + date;
+                    const year = value.getFullYear();
+                    toDisplay = date + '-' + month + '-' + year;
                 } else {
                     toDisplay = '(pilih tanggal)';
                 }
