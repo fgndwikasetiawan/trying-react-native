@@ -100,7 +100,6 @@ export default class ItemInfoScreen extends Component {
 
     deleteItem() {
         let itemSearchScreen = this.props.navigation.state.params.itemSearchScreen || {clearItems: () => false, refreshItems: () => false};
-
         itemSearchScreen.clearItems();
         let realm = this.props.navigation.state.params.realm;
         let item = this.state.item;

@@ -2,10 +2,12 @@ import React, { Component } from 'react';
 import ItemInfoScreen from './item-info-screen.js';
 import ItemSearchScreen from './item-search-screen.js';
 import AddItemScreen from './add-item-screen.js';
+import StockReportScreen from './stock-report-screen.js';
 import { AppRegistry, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ToastAndroid } from 'react-native';
 import { StackNavigator, DrawerNavigator } from 'react-navigation';
 import Realm from 'realm';
 import { Barang, Stok, RealmConfigs } from './database.js';
+import {Button} from './buttons.js';
 
 class Main extends React.Component {
 
@@ -84,6 +86,8 @@ class Main extends React.Component {
 					 onPress={() => navigate('AddItem', {realm: this.state.realm})} >
 					 	<Text style={style.buttonText}>TAMBAH BARANG</Text>
 					 </TouchableOpacity>
+
+					 <Button title="STOK DAN KADALUARSA" onPress={() => navigate('StockReport', {realm: this.state.realm})} />
 				</View>
 			</View>
 		);
@@ -113,7 +117,8 @@ const App = StackNavigator({
 	Main: {screen: Main},
 	ItemSearch: {screen: ItemSearchScreen},
 	ItemInfo: {screen: ItemInfoScreen},
-	AddItem: {screen: AddItemScreen}
+	AddItem: {screen: AddItemScreen},
+	StockReport: {screen: StockReportScreen}
 });
 
 AppRegistry.registerComponent("reactNative", () => App);
