@@ -74,7 +74,7 @@ class Main extends React.Component {
 				<View style={{paddingTop: 10}}>
 					<Text>Main screen</Text>
 				</View>
-				<View>
+				<View style={{flexDirection: 'column'}}>
 					<TouchableOpacity 
 					 style={style.button}
 					 onPress={() => navigate('ItemSearch', {realm: this.state.realm})} >
@@ -86,8 +86,8 @@ class Main extends React.Component {
 					 onPress={() => navigate('AddItem', {realm: this.state.realm})} >
 					 	<Text style={style.buttonText}>TAMBAH BARANG</Text>
 					 </TouchableOpacity>
-
-					 <Button title="STOK DAN KADALUARSA" onPress={() => navigate('StockReport', {realm: this.state.realm})} />
+					 
+					 <Button style={{width: 180}} title="STOK DAN KADALUARSA" onPress={() => navigate('StockReport', {realm: this.state.realm})} />
 				</View>
 			</View>
 		);
