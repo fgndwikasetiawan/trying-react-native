@@ -161,7 +161,7 @@ export default class ItemInfoScreen extends Component {
         }
 
         return (
-            <ScrollView>
+            <ScrollView style={{paddingLeft: 5}}>
                 <View>
                     <Modal animationType="fade"
                             transparent={true}

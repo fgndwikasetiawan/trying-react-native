@@ -38,7 +38,7 @@ export default class ItemSearchScreen extends Component {
     refreshItems() {
         let itemsPromise = new Promise((resolve, reject) => {
             try {
-                items = this.state.realm.objects('Barang');
+                items = this.state.realm.objects('Barang').sorted('nama');
                 resolve(items);
             }
             catch (error) {
@@ -53,7 +53,7 @@ export default class ItemSearchScreen extends Component {
                         });
                         this.handleSearchTextChange(this.state.searchText);
             },
-            (error) => ToastAndroud.show(error.toString(), ToastAndroid.SHORT)
+            (error) => ToastAndroid.show(error.toString(), ToastAndroid.SHORT)
         );
     }
 
@@ -69,7 +69,7 @@ export default class ItemSearchScreen extends Component {
             this.setState({
                 searchText: text,
                 listDataSource: this.state.listDataSource.cloneWithRows(
-                                    this.state.items.filtered('nama CONTAINS[c] "' + text + '"')
+                                    this.state.items.filtered('nama CONTAINS[c] "' + text + '"').sorted('nama')
                                 )
             })
         }

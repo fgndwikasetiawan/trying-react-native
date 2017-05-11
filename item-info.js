@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, DatePickerAndroid } from 'react-native';
+import {getDateString} from './utils.js';
 
 export const ItemInfoTypes = {
     TEXT: 't',
@@ -29,10 +30,7 @@ export default class ItemInfo extends Component {
                 let value = this.props.value;
                 //verify the value is a Date object
                 if (value && value.getTime && value.getTime() > (new Date()).getTime()) {
-                    const month = (value.getMonth() < 10 ? '0' : '') + value.getMonth();
-                    const date = (value.getDate() < 10 ? '0' : '') + value.getDate();
-                    const year = value.getFullYear();
-                    toDisplay = date + '-' + month + '-' + year;
+                    toDisplay = getDateString(value);
                 } else {
                     toDisplay = '(pilih tanggal)';
                 }
@@ -58,7 +56,7 @@ export default class ItemInfo extends Component {
                 let value = this.props.value;
                 //verify the value is a Date object
                 if (value && value.getTime && value.getTime() > (new Date()).getTime()) {
-                    toDisplay = value.getFullYear() + '-' + value.getMonth() + '-' + value.getDate();
+                    toDisplay = getDateString(value);
                 } else {
                     toDisplay = 'tidak ada';
                 }
