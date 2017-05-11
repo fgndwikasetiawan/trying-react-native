@@ -1,8 +1,9 @@
 import React, {Component} from 'react';
 import {View, Text, ToastAndroid, TouchableOpacity, ScrollView, Dimensions, FlatList,
-        Animated, TouchableWithoutFeedback} from 'react-native';
+        Animated, TouchableNativeFeedback} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {getDateString} from './utils.js';
+import {HorizontalBar} from './misc-components.js';
 
 const HEADER_HEIGHT = 80;
 
@@ -44,27 +45,27 @@ function InfoCardA (props) {
 
 function ExpiredListItem (props) {
     return (
-        <View>
+        <TouchableNativeFeedback onPress={props.onPress}>
             <View style={{flexDirection: 'row', padding: 10}}>
                 <Text style={{flex: 0.7, fontSize: 18}}>{props.item.stok}x {props.item.nama}</Text>
                 <Icon name='calendar' style={{flex: 0.3, fontSize: 14}}>
                     {' '} {getDateString(props.item.kadaluarsa)}
                 </Icon>
             </View>
-        </View>
+        </TouchableNativeFeedback>
     );
 }
 
 function UnderstockedListItem (props) {
     return (
-        <View>
+        <TouchableNativeFeedback onPress={props.onPress}>
             <View style={{flexDirection: 'row', padding: 10}}>
                 <Text style={{flex: 0.7, fontSize: 18}}>{props.item.nama}</Text>
                 <Icon name='cubes' style={{flex: 0.3, fontSize: 14, textAlign: 'right'}}>
                     {' '} {props.item.stok}/{props.item.threshold}
                 </Icon>
             </View>
-        </View>
+        </TouchableNativeFeedback>
     );
 }
 
@@ -141,7 +142,7 @@ export default class StockReportScreen extends Component {
             let expired = false;
             item.stok.forEach((stokInfo) => {
                 if (deltaDays(currentDate, stokInfo.kadaluarsa) <= threshold && stokInfo.stok > 0) {
-                    expiredItemList.push({nama: item.nama, kadaluarsa: stokInfo.kadaluarsa, stok: stokInfo.stok, threshold: item.thresholdKadaluarsa});
+                    expiredItemList.push({realmObject: item, nama: item.nama, kadaluarsa: stokInfo.kadaluarsa, stok: stokInfo.stok, threshold: item.thresholdKadaluarsa});
                     expired = true;
                 }
             });
@@ -155,12 +156,16 @@ export default class StockReportScreen extends Component {
     calculateUnderstockedItems() {
         let understockedItemList = [];
         this.state.items.forEach((item) => {
-            let totalStok = item.stok.reduce((s1, s2) => s1.stok + s2.stok);
+            let totalStok = item.stok.reduce((acc, s) => acc + s.stok, 0);
             if (totalStok < item.thresholdStok) {
-                understockedItemList.push({nama: item.nama, stok: totalStok, threshold: item.thresholdStok});
+                understockedItemList.push({realmObject: item, nama: item.nama, stok: totalStok, threshold: item.thresholdStok});
             }
         });
         this.setState({understockedItemList});
+    }
+
+    refresh() {
+        this.fetchItems();
     }
 
     scroll(direction) {
@@ -191,8 +196,15 @@ export default class StockReportScreen extends Component {
     render() {
         let listKadaluarsa = this.state.expiredItemList && this.state.expiredItemList.length > 0 ?
             <FlatList 
+                ItemSeparatorComponent={HorizontalBar}
                 data={this.state.expiredItemList.map((item) => {item.key = item.nama + '_' + item.kadaluarsa; return item})}
-                renderItem={({item}) => <ExpiredListItem item={item}/>}
+                renderItem={({item}) => 
+                    <ExpiredListItem item={item} onPress={
+                        () => this.props.navigation.navigate('ItemInfo', {
+                                item: item.realmObject, realm: this.props.navigation.state.params.realm, previousScreen: this
+                            })
+                    }/>
+                }
                 style={{height: 80}}/>
             :
             <View style={{height: '100%', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
@@ -201,8 +213,15 @@ export default class StockReportScreen extends Component {
             
         let listStok = this.state.understockedItemList && this.state.understockedItemList.length > 0 ?
             <FlatList 
+                ItemSeparatorComponent={HorizontalBar}
                 data={this.state.understockedItemList.map((item) => {item.key = item.nama; return item})}
-                renderItem={({item}) => <UnderstockedListItem item={item}/>}
+                renderItem={({item}) => 
+                    <UnderstockedListItem item={item} onPress={
+                        () => this.props.navigation.navigate('ItemInfo', {
+                                item: item.realmObject, realm: this.props.navigation.state.params.realm, previousScreen: this
+                            })
+                    }/>
+                }
                 style={{height: 80}}/>
             :
             <View style={{height: '100%', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
@@ -245,7 +264,7 @@ export default class StockReportScreen extends Component {
                             'Barang-barang minim stok:'}
                     </Text>
                     
-                    <Icon name={this.state.scrollAtTop ? 'arrow-up' : 'arrow-down'} 
+                    <Icon name={this.state.scrollAtTop ? 'chevron-up' : 'chevron-down'} 
                           style={{flex: 0.3, textAlign: 'right', textAlignVertical: 'center', color: 'white', fontSize: 16}}/>
 
                 </View>

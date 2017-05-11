@@ -57,6 +57,11 @@ export default class ItemSearchScreen extends Component {
         );
     }
 
+    //supaya bisa dipanggil oleh ItemInfoScreen
+    refresh() {
+        this.refreshItems();
+    }
+
     clearItems() {
         this.setState({
             items: false,
@@ -78,7 +83,7 @@ export default class ItemSearchScreen extends Component {
     onListItemPress(item){
         let realm = this.state.realm;
         this.props.navigation.goBack();
-        this.props.navigation.navigate('ItemInfo', {item: item, realm: realm, itemSearchScreen: this});
+        this.props.navigation.navigate('ItemInfo', {item: item, realm: realm, previousScreen: this});
     }
 
 

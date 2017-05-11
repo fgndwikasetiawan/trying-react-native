@@ -26,7 +26,8 @@ export default class ItemInfoScreen extends Component {
                 thresholdKadaluarsa: navigationStates.item.thresholdKadaluarsa,
                 thresholdStok: navigationStates.item.thresholdStok
             },
-            showDeleteModal: false 
+            showDeleteModal: false,
+            previousScreen: this.props.navigation.state.params.previousScreen || {refresh: () => false} 
         };
     }
 
@@ -91,7 +92,7 @@ export default class ItemInfoScreen extends Component {
             isEditing: false
         });
 
-        this.props.navigation.state.params.itemSearchScreen.refreshItems();
+        this.state.previousScreen.refresh();
     }
 
     onDeleteButtonPress() {
@@ -99,8 +100,6 @@ export default class ItemInfoScreen extends Component {
     }
 
     deleteItem() {
-        let itemSearchScreen = this.props.navigation.state.params.itemSearchScreen || {clearItems: () => false, refreshItems: () => false};
-        itemSearchScreen.clearItems();
         let realm = this.props.navigation.state.params.realm;
         let item = this.state.item;
         this.setState({
@@ -111,7 +110,7 @@ export default class ItemInfoScreen extends Component {
         this.props.navigation.state.params.item = {};
 
         realm.write(() => realm.delete(item));
-        itemSearchScreen.refreshItems();
+        this.state.previousScreen.refresh();
         this.props.navigation.goBack();        
     }
 
