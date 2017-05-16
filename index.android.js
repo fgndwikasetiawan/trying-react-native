@@ -3,10 +3,11 @@ import ItemInfoScreen from './item-info-screen.js';
 import ItemSearchScreen from './item-search-screen.js';
 import AddItemScreen from './add-item-screen.js';
 import StockReportScreen from './stock-report-screen.js';
-import { AppRegistry, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ToastAndroid } from 'react-native';
+import AddTransactionScreen from './add-transaction-screen.js';
+import { AppRegistry, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ToastAndroid} from 'react-native';
 import { StackNavigator, DrawerNavigator } from 'react-navigation';
 import Realm from 'realm';
-import { Barang, Stok, RealmConfigs } from './database.js';
+import { Barang, Stok, Transaksi, BarangTransaksi, RealmConfigs } from './database.js';
 import {Button} from './buttons.js';
 
 class Main extends React.Component {
@@ -20,8 +21,8 @@ class Main extends React.Component {
 		this.state = {
 			isReady: false,
 			realm: new Realm({
-				schema: [Barang, Stok],
-				schemaVersion: 3
+				schema: [Barang, Stok, Transaksi, BarangTransaksi],
+				schemaVersion: 4
 			}),
 			isReady: true
 		};
@@ -79,15 +80,17 @@ class Main extends React.Component {
 					 style={style.button}
 					 onPress={() => navigate('ItemSearch', {realm: this.state.realm})} >
 					 	<Text style={style.buttonText}>CARI BARANG</Text>
-					 </TouchableOpacity>
+					</TouchableOpacity>
 
-					 <TouchableOpacity 
-					 style={style.button}
-					 onPress={() => navigate('AddItem', {realm: this.state.realm})} >
-					 	<Text style={style.buttonText}>TAMBAH BARANG</Text>
-					 </TouchableOpacity>
-					 
-					 <Button style={{width: 180}} title="STOK DAN KADALUARSA" onPress={() => navigate('StockReport', {realm: this.state.realm})} />
+					<TouchableOpacity 
+					style={style.button}
+					onPress={() => navigate('AddItem', {realm: this.state.realm})} >
+					<Text style={style.buttonText}>TAMBAH BARANG</Text>
+					</TouchableOpacity>
+					
+					<Button style={{width: 180}} title="STOK DAN KADALUARSA" onPress={() => navigate('StockReport', {realm: this.state.realm})} />
+					<Button title="TRANSAKSI BARU" onPress={() => navigate('AddTransaction', {realm: this.state.realm})} />
+
 				</View>
 			</View>
 		);
@@ -118,7 +121,8 @@ const App = StackNavigator({
 	ItemSearch: {screen: ItemSearchScreen},
 	ItemInfo: {screen: ItemInfoScreen},
 	AddItem: {screen: AddItemScreen},
-	StockReport: {screen: StockReportScreen}
+	StockReport: {screen: StockReportScreen},
+	AddTransaction: {screen: AddTransactionScreen}
 });
 
 AppRegistry.registerComponent("reactNative", () => App);

@@ -1,0 +1,224 @@
+import React, {Component} from 'react';
+import {View, ScrollView, Text, TextInput, TouchableOpacity, ToastAndroid, StyleSheet} from 'react-native';
+import Autocomplete from 'react-native-autocomplete-input';
+import ItemInfo, {ItemInfoTypes} from './item-info.js';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import {AddCircleButton, DeleteCircleButton} from './buttons.js'
+
+function TransactionItem(props) {
+    return (
+        <View style={props.style}>
+        <View style={style.transactionItemUpperRow}>
+            {props.data && props.data.filter && props.data.length > 0 ?
+                
+                <AutoCompleteInput 
+                    containerStyle={style.transactionItemNameContainer}
+                    inputContainerStyle={style.transactionItemName}
+                    data={props.data.filter((item) => 
+                        props.nama.length > 0 &&
+                        item.nama.toLowerCase().contains(props.nama.toLowerCase())
+                    )}
+                    defaultValue={props.nama}
+                    onChangeText={(text) => props.onChange('nama', text)}
+                    renderItem={(item) => 
+                        <TouchableOpacity onPress={() => {props.onChange('nama', item.nama); props.onChange('harga', item.harga)}}>
+                            <Text>{item.nama}</Text>
+                        </TouchableOpacity>
+                    }               
+                />
+                
+                : false
+            }
+            {/*<TextInput underlineColorAndroid='transparent' style={style.transactionItemName} value={props.nama || ""} 
+                onChangeText={(text) => props.onChange('nama', text)}
+            />*/}
+            <Icon style={style.transactionItemSymbol} name="times"/>
+            <TextInput underlineColorAndroid='transparent' style={style.transactionItemQty} value={props.jumlah || ""}
+                onChangeText={(text) => props.onChange('jumlah', text)}
+            />
+        </View>
+        <View style={style.transactionItemLowerRow}>
+            <Text style={style.transactionItemPrice}>{props.harga || "- -"}</Text>
+            <Text style={style.transactionItemTotalPrice}>{props.jumlah * props.harga || "- -"}</Text>
+        </View>
+        </View>
+    );
+}
+
+function AutoCompleteInput(props) {
+    return (
+        <View style={{
+            //position: 'absolute',
+            //top: 0,
+            //left: 0
+        }}>
+        <Autocomplete 
+            containerStyle={[props.containerStyle]}
+            inputContainerStyle={props.inputContainerStyle}
+            data={props.data}
+            defaultValue={props.defaultValue}
+            onChangeText={props.onChangeText}
+            renderItem={props.renderItem}
+        /> 
+        </View>
+    );
+}
+
+export default class AddTransactionScreen extends Component {
+    static navigationOptions = {
+        title: 'Transaksi baru',
+        headerStyle: {backgroundColor: '#5af'},
+        headerTitleStyle: {color: 'white', fontWeight: 'bold'},
+        headerTintColor: 'white'
+    }
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            pelanggan: "",
+            tanggal: new Date(),
+            items: [],
+            transactionItems: [],
+            newTransactionItem: {nama: '', jumlah: ''}
+        }
+        this.fetchItems();
+    }
+
+
+    fetchItems() {
+        let realm = this.props.navigation.state.params.realm;
+        let itemsPromise = new Promise((resolve, reject) => {
+            try {
+                let items = realm.objects('Barang').sorted('nama');
+                resolve(items);
+            }
+            catch (error) {
+                reject(error);
+            }
+        });
+        itemsPromise.then((items) => {
+            this.setState({items: items.map((item) => item)});
+            ToastAndroid.show('items loaded: ' + items.length, 10);
+        }, 
+        (error) => {
+            ToastAndroid.show(error, ToastAndroid.SHORT);
+        });
+    }
+
+    addItemRow() {
+        let transactionItems = this.state.transactionItems;
+        let newTransactionItem = this.state.newTransactionItem;
+        transactionItems.push({
+            nama: newTransactionItem.nama, 
+            harga: newTransactionItem.harga,
+            jumlah: newTransactionItem.jumlah,
+        });
+        newTransactionItem = {nama: '', jumlah: ''};
+        this.setState({transactionItems, newTransactionItem});
+    }
+
+    deleteItemRow(item) {
+        let transactionItems = this.state.transactionItems;
+        let index = transactionItems.findIndex((transactionItem) => transactionItem === item);
+        transactionItems = transactionItems.slice(0, index).concat(transactionItems.slice(index+1));
+        this.setState({transactionItems});
+    }
+
+    handleItemValueChange(item, prop, value) {
+        item[prop] = value;
+        this.setState({transactionItems: this.state.transactionItems, newTransactionItem: this.state.newTransactionItem});
+    }
+
+    render() {
+        let transactionItems = this.state.transactionItems.map((item, index) => {
+            return (
+                <View key={index} style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <TransactionItem style={{flex: 0.9}} 
+                    data={this.state.items}
+                    nama={item.nama} jumlah={item.jumlah} harga={item.price}
+                    onChange={(prop, value) => this.handleItemValueChange(item, prop, value)}/>
+                    <View style={{flex: 0.1, alignItems: 'center', paddingTop: 5}}>
+                        <DeleteCircleButton onPress={() => this.deleteItemRow(item)}/>
+                    </View>
+                </View>
+            );  
+        });
+
+        return(
+            //<Text> Hai </Text>
+            <ScrollView style={{paddingTop: 5}} keyboardShouldPersistTaps="always">
+                <View style={{paddingLeft: 5, paddingRight: 5}}>
+                    <ItemInfo name="Pelanggan" value={this.state.pelanggan} type={ItemInfoTypes.TEXT} editMode={true} />
+                    <ItemInfo name="Tanggal" value={this.state.tanggal} type={ItemInfoTypes.DATE} editMode={true} />
+                    <Text style={{fontSize: 16, fontWeight: 'bold', marginBottom: 5}}>Barang:</Text>
+                </View>
+
+                <View style={{
+                    flex: 1, flexDirection: 'row', justifyContent: 'space-between', height: 25,
+                    paddingLeft: 5, paddingRight: 5
+                }}>   
+                    <View style={{flex: 0.9, flexDirection: 'row', justifyContent: 'space-between'}}>
+                        <Text style={{fontWeight: 'bold', flex: 0.5}}>Nama</Text>
+                        <View style={{flex: 0.1}} />
+                        <Text style={{fontWeight: 'bold', flex: 0.3}}>Jumlah</Text>
+                    </View>
+                    <View style={{flex: 0.1}} />
+                </View>
+                
+                <View style={{paddingLeft: 5, paddingRight: 5}}>
+                    {transactionItems}
+                </View>
+
+                <View style={{paddingLeft: 5, paddingRight: 5, flexDirection: 'row', justifyContent: 'space-between'}}>
+                    <TransactionItem style={{flex: 0.9}}
+                        data={this.state.items} 
+                        nama={this.state.newTransactionItem.nama} 
+                        jumlah={this.state.newTransactionItem.jumlah}
+                        onChange={(prop, value) => this.handleItemValueChange(this.state.newTransactionItem, prop, value)}/>
+                    <View style={{flex: 0.1}}/>
+                </View>
+
+                <View style={{marginTop: 10, paddingBottom: 30, flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+                    <AddCircleButton scale={2} onPress={() => this.addItemRow()}/>
+                </View>
+
+            </ScrollView>
+        );
+    }
+}
+
+const style = StyleSheet.create({
+    transactionItemUpperRow: {
+        height: 40, marginBottom: 5,
+        flex: 1, flexDirection: 'row', justifyContent: 'space-between'
+    },
+    transactionItemLowerRow: {
+        height: 40,
+        flex: 1, flexDirection: 'row', justifyContent: 'space-between'
+    },
+    transactionItemName: {
+        height: 40, paddingLeft: 5, paddingRight: 5, paddingTop: 5, paddingBottom: 5,
+        borderRadius: 5, backgroundColor: 'white',
+    },
+    transactionItemNameContainer: {
+        flex: 0.5
+    },
+    transactionItemSymbol: {
+        height: 40, fontSize: 16,
+        flex: 0.1,
+        textAlign: 'center', textAlignVertical: 'center'
+    },
+    transactionItemQty: {
+        height: 40, paddingLeft: 5, paddingRight: 5, paddingTop: 5, paddingBottom: 5,
+        borderRadius: 5, backgroundColor: 'white',
+        flex: 0.3
+    },
+    transactionItemPrice: {
+        height: 40, paddingLeft: 5, paddingRight: 5, paddingTop: 5, paddingBottom: 5,
+        flex: 0.6
+    },
+    transactionItemTotalPrice: {
+        height: 40, paddingLeft: 5, paddingRight: 5, paddingTop: 5, paddingBottom: 5,
+        flex: 0.3
+    }
+})

@@ -22,6 +22,27 @@ Barang.schema = {
     }
 }
 
+export class BarangTransaksi {}
+BarangTransaksi.schema = {
+    name: 'BarangTransaksi',
+    properties: {
+        nama: {type: 'string'},
+        harga: {type: 'int'},
+        jumlah: {type: 'int'}
+    }
+}
+
+export class Transaksi {}
+Transaksi.schema = {
+    name: 'Transaksi',
+    properties: {
+        pelanggan: {type: 'string'},
+        transaksi: {type: 'list', objectType: 'BarangTransaksi'},
+        waktu: {type: 'date'},
+        status: {type: 'string', default: ''}
+    }
+}
+
 export const RealmConfigs = {
     SCHEMA_VERSION: 1,
     SERVER_ADDRESS: 'http://128.199.186.34:9080',

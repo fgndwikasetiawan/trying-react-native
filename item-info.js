@@ -29,7 +29,7 @@ export default class ItemInfo extends Component {
                 let toDisplay;
                 let value = this.props.value;
                 //verify the value is a Date object
-                if (value && value.getTime && value.getTime() > (new Date()).getTime()) {
+                if (value && value.getTime) {
                     toDisplay = getDateString(value);
                 } else {
                     toDisplay = '(pilih tanggal)';
