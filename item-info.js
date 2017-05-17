@@ -81,8 +81,6 @@ const style = StyleSheet.create({
     field: {
         fontSize: 20,
         marginTop: 5,
-        marginLeft: 5,
-        marginRight: 5,
         paddingLeft: 5,
         paddingRight: 5,
         marginBottom: 10
