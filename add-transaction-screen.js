@@ -6,6 +6,7 @@ import Autocomplete from 'react-native-autocomplete-input';
 import ItemInfo, {ItemInfoTypes} from './item-info.js';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {AddCircleButton, DeleteCircleButton, Button} from './buttons.js'
+import {getDateString} from './utils.js';
 
 const ModalType = {
     ITEM_PICKER: 'ip',
@@ -69,13 +70,17 @@ function ItemPicker(props) {
                 onChangeText={props.onChangeText}/>
             <ListView style={{width: '100%', marginTop: 10}}
                 dataSource={props.dataSource.cloneWithRows(
-                    props.items.filtered ?
-                    props.items.filtered('nama contains[c] "' + props.query + '"').sorted('nama') : []
+                    props.items.filter((itemStok) => itemStok.item.nama.toLowerCase().contains(props.query.toLowerCase()))
                 )}
-                renderRow={(item) => 
+                renderRow={(itemStok) => 
                     <TouchableOpacity style={style.itemPickerRow}
-                        onPress={() => props.onPress(item)}>
-                        <Text>{item.nama}</Text>
+                        onPress={() => props.onPress(itemStok)}>
+                        <Text>
+                            <Text style={{fontWeight: 'bold', color: 'maroon'}}>
+                                {'(' + getDateString(itemStok.stok.kadaluarsa) + ') '}
+                            </Text>
+                            {itemStok.item.nama}
+                        </Text>
                     </TouchableOpacity>
                 }/>
         </View>
@@ -93,17 +98,19 @@ function TransactionItem(props) {
                         props.showModal(nativeEvent.pageX, nativeEvent.pageY);
                     }
                 }>
-                <Text>{props.item.nama}</Text>
+                 
+                    <Text>{(props.itemTransaksi.stok.kadaluarsa ? 
+                        '(' + getDateString(props.itemTransaksi.stok.kadaluarsa) + ') ' : '') + props.itemTransaksi.item.nama}</Text>
             </View>
             
             <Icon style={style.transactionItemSymbol} name="times"/>
-            <TextInput underlineColorAndroid='transparent' style={style.transactionItemQty} value={props.item.jumlah || ""}
+            <TextInput underlineColorAndroid='transparent' style={style.transactionItemQty} value={props.itemTransaksi.jumlah || ""}
                 onChangeText={(text) => props.onChange('jumlah', text)}
             />
         </View>
         <View style={style.transactionItemLowerRow}>
-            <Text style={style.transactionItemPrice}>{props.item.harga || "- -"}</Text>
-            <Text style={style.transactionItemTotalPrice}>{props.item.jumlah * props.item.harga || "- -"}</Text>
+            <Text style={style.transactionItemPrice}>{props.itemTransaksi.item.harga || "- -"}</Text>
+            <Text style={style.transactionItemTotalPrice}>{props.itemTransaksi.jumlah * props.itemTransaksi.item.harga || "- -"}</Text>
         </View>
         </View>
     );
@@ -125,7 +132,7 @@ export default class AddTransactionScreen extends Component {
             tanggal: new Date(),
             items: [],
             transactionItems: [],
-            newTransactionItem: {nama: '', jumlah: ''},
+            newTransactionItem: {item:{nama: ''}, stok: {}},
             itemPickerDataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
             itemPickerQuery: '',
             editedItem: false,
@@ -159,7 +166,14 @@ export default class AddTransactionScreen extends Component {
             }
         });
         itemsPromise.then((items) => {
-            this.setState({items});
+            let itemStocks = items.map((item) => {
+                return item.stok.map((stokInfo) => {
+                    return {item: item, stok: stokInfo}
+                });
+            }).reduce((i1, i2) => {
+                return [].concat(i1, i2);
+            });
+            this.setState({items: itemStocks});
         }, 
         (error) => {
             ToastAndroid.show(error, ToastAndroid.SHORT);
@@ -170,11 +184,11 @@ export default class AddTransactionScreen extends Component {
         let transactionItems = this.state.transactionItems;
         let newTransactionItem = this.state.newTransactionItem;
         transactionItems.push({
-            nama: newTransactionItem.nama, 
-            harga: newTransactionItem.harga,
+            item: newTransactionItem.item,
+            stok: newTransactionItem.stok,
             jumlah: newTransactionItem.jumlah,
         });
-        newTransactionItem = {nama: '', jumlah: ''};
+        newTransactionItem = {item: {nama: ''}, stok: {}, jumlah: ''};
         this.setState({transactionItems, newTransactionItem});
     }
 
@@ -210,13 +224,42 @@ export default class AddTransactionScreen extends Component {
 
     saveTransaction() {
         let barangTransaksi = this.state.transactionItems.map(
-                                (item) => {return {nama: item.nama, harga: item.harga, jumlah: item.jumlah}});
+                                (itemTransaksi) => {
+                                    return {nama: itemTransaksi.item.nama, harga: itemTransaksi.item.harga, jumlah: itemTransaksi.jumlah}
+                                });
         let transaksi = {pelanggan: this.state.pelanggan, waktu: this.state.tanggal, barangTransaksi}
-        let realm = this.props.navigation.state.params.realm;
-        realm.write(() => {
-            realm.create('Transaksi', transaksi)
+        try {
+            let realm = this.props.navigation.state.params.realm;
+            realm.write(() => {
+                realm.create('Transaksi', transaksi);
+                this.state.transactionItems.forEach((itemTransaksi) => {
+                    itemTransaksi.stok.stok -= itemTransaksi.jumlah;
+                })
+            });
+            ToastAndroid.show('Transaksi tersimpan', ToastAndroid.SHORT);
+            this.reset();
+        }
+        catch (error) {
+            ToastAndroid.show('Error: ' + error);
+        }
+    }
+
+    reset() {
+        this.setState({
+            pelanggan: "",
+            tanggal: new Date(),
+            items: [],
+            transactionItems: [],
+            newTransactionItem: {item:{nama: ''}, stok: {}},
+            itemPickerDataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
+            itemPickerQuery: '',
+            editedItem: false,
+            modalAnimation: new Animated.Value(0),
+            modalStartingTop: 0,
+            modalStartingLeft: 0,
+            showModal: false,
+            modalType: ModalType.EMPTY
         });
-        ToastAndroid.show('Transaksi tersimpan', ToastAndroid.SHORT);
     }
 
     render() {
@@ -226,10 +269,10 @@ export default class AddTransactionScreen extends Component {
                 dataSource={this.state.itemPickerDataSource}
                 query={this.state.itemPickerQuery}
                 onChangeText={(text) => this.setState({itemPickerQuery: text})}
-                onPress={(item) => {
+                onPress={(itemStok) => {
                     this.hideModal();
-                    this.state.editedItem.nama = item.nama;
-                    this.state.editedItem.harga = item.harga;
+                    this.state.editedItem.item = itemStok.item;
+                    this.state.editedItem.stok = itemStok.stok;
                 }}
             />
 
@@ -260,29 +303,29 @@ export default class AddTransactionScreen extends Component {
                     paddingLeft: 10, paddingRight: 5
                 }}>   
                     <View style={{flex: 0.9, flexDirection: 'row', justifyContent: 'space-between'}}>
-                        <Text style={{fontWeight: 'bold', flex: 0.5}}>Nama</Text>
+                        <Text style={{fontWeight: 'bold', flex: 0.6}}>Nama</Text>
                         <View style={{flex: 0.1}} />
-                        <Text style={{fontWeight: 'bold', flex: 0.3}}>Jumlah</Text>
+                        <Text style={{fontWeight: 'bold', flex: 0.2}}>Jumlah</Text>
                     </View>
                     <View style={{flex: 0.1}} />
                 </View>;
 
-        let transactionItems = this.state.transactionItems.map((item, index) => {
+        let transactionItems = this.state.transactionItems.map((itemTransaksi, index) => {
             return (
                 <View key={index} style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                     <TransactionItem style={{flex: 0.9}}
-                        item={item}
-                        onChange={(prop, value) => this.handleItemValueChange(item, prop, value)}
+                        itemTransaksi={itemTransaksi}
+                        onChange={(prop, value) => this.handleItemValueChange(itemTransaksi, prop, value)}
                         showModal={(x, y) => {
                             this.setState({
-                                editedItem: item,
-                                itemPickerQuery: item.nama
+                                editedItem: itemTransaksi,
+                                itemPickerQuery: itemTransaksi.item.nama
                             });
                             this.showModal(x, y, ModalType.ITEM_PICKER);
                         }}
                     />
                     <View style={{flex: 0.1, alignItems: 'center', paddingTop: 5}}>
-                        <DeleteCircleButton onPress={() => this.deleteItemRow(item)}/>
+                        <DeleteCircleButton onPress={() => this.deleteItemRow(itemTransaksi)}/>
                     </View>
                 </View>
             );  
@@ -290,12 +333,12 @@ export default class AddTransactionScreen extends Component {
         let newTransactionItemFields =
                 <View style={{paddingLeft: 10, paddingRight: 5, flexDirection: 'row', justifyContent: 'space-between'}}>
                     <TransactionItem style={{flex: 0.9}} 
-                        item={this.state.newTransactionItem}
+                        itemTransaksi={this.state.newTransactionItem}
                         onChange={(prop, value) => this.handleItemValueChange(this.state.newTransactionItem, prop, value)}
                         showModal={(x, y) => {
                             this.setState({
                                 editedItem: this.state.newTransactionItem,
-                                itemPickerQuery: this.state.newTransactionItem.nama
+                                itemPickerQuery: this.state.newTransactionItem.item.nama
                             });
                             this.showModal(x, y, ModalType.ITEM_PICKER);
                         }}
@@ -313,8 +356,8 @@ export default class AddTransactionScreen extends Component {
                 <View style={{marginTop: 20, paddingLeft: 10, paddingRight: 30, flexDirection: 'row', justifyContent: 'space-between', height: 60}}>
                     <Text style={{fontSize: 32, fontWeight: 'bold'}}>Total: </Text>
                     <Text style={{fontSize: 32}}>{
-                        this.state.transactionItems.reduce((acc, item) => {
-                            return (item.harga * item.jumlah + acc) || 0;
+                        this.state.transactionItems.reduce((acc, transaksi) => {
+                            return (transaksi.item.harga * transaksi.jumlah + acc) || 0;
                         }, 0) 
                     }</Text>
                 </View>
@@ -323,6 +366,7 @@ export default class AddTransactionScreen extends Component {
                 <View style={{marginTop: 15, marginBottom: 30, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: 60}}>
                     <Button title="simpan" onPress={() => this.saveTransaction()} />    
                 </View>
+        
         return(
             <View>
             <ScrollView style={{paddingTop: 5}}>
@@ -354,7 +398,7 @@ const style = StyleSheet.create({
     transactionItemName: {
         height: 40, paddingLeft: 5, paddingRight: 5, paddingTop: 5, paddingBottom: 5,
         borderRadius: 5, backgroundColor: 'white',
-        flex: 0.5
+        flex: 0.6
     },
     transactionItemSymbol: {
         height: 40, fontSize: 16,
@@ -364,15 +408,15 @@ const style = StyleSheet.create({
     transactionItemQty: {
         height: 40, paddingLeft: 5, paddingRight: 5, paddingTop: 5, paddingBottom: 5,
         borderRadius: 5, backgroundColor: 'white',
-        flex: 0.3
+        flex: 0.2
     },
     transactionItemPrice: {
         height: 40, paddingLeft: 5, paddingRight: 5, paddingTop: 5, paddingBottom: 5,
-        flex: 0.6
+        flex: 0.7
     },
     transactionItemTotalPrice: {
         height: 40, paddingLeft: 5, paddingRight: 5, paddingTop: 5, paddingBottom: 5,
-        flex: 0.3
+        flex: 0.2
     },
     itemPickerContainer: {
         backgroundColor: '#bbb',
