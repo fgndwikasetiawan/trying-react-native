@@ -4,6 +4,7 @@ import ItemSearchScreen from './item-search-screen.js';
 import AddItemScreen from './add-item-screen.js';
 import StockReportScreen from './stock-report-screen.js';
 import AddTransactionScreen from './add-transaction-screen.js';
+import TransactionReportScreen from './transaction-report-screen.js';
 import { AppRegistry, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ToastAndroid} from 'react-native';
 import { StackNavigator, DrawerNavigator } from 'react-navigation';
 import Realm from 'realm';
@@ -90,7 +91,7 @@ class Main extends React.Component {
 					
 					<Button style={{width: 180}} title="STOK DAN KADALUARSA" onPress={() => navigate('StockReport', {realm: this.state.realm})} />
 					<Button title="TRANSAKSI BARU" onPress={() => navigate('AddTransaction', {realm: this.state.realm})} />
-
+					<Button title="LAPORAN TRANSAKSI" onPress={() => navigate('TransactionReport', {realm: this.state.realm})} />
 				</View>
 			</View>
 		);
@@ -122,7 +123,8 @@ const App = StackNavigator({
 	ItemInfo: {screen: ItemInfoScreen},
 	AddItem: {screen: AddItemScreen},
 	StockReport: {screen: StockReportScreen},
-	AddTransaction: {screen: AddTransactionScreen}
+	AddTransaction: {screen: AddTransactionScreen},
+	TransactionReport: {screen: TransactionReportScreen}
 });
 
 AppRegistry.registerComponent("reactNative", () => App);

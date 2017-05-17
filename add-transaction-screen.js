@@ -223,11 +223,26 @@ export default class AddTransactionScreen extends Component {
     }
 
     saveTransaction() {
-        let barangTransaksi = this.state.transactionItems.map(
-                                (itemTransaksi) => {
-                                    return {nama: itemTransaksi.item.nama, harga: itemTransaksi.item.harga, jumlah: itemTransaksi.jumlah}
-                                });
-        let transaksi = {pelanggan: this.state.pelanggan, waktu: this.state.tanggal, barangTransaksi}
+        // let barangTransaksi = this.state.transactionItems.map(
+        //                         (itemTransaksi) => {
+        //                             return {nama: itemTransaksi.item.nama, harga: itemTransaksi.item.harga, jumlah: itemTransaksi.jumlah}
+        //                         });
+        
+        //kelompokkan barang transaksi berdasarkan nama
+        let barangTransaksiGrouped = {};
+        this.state.transactionItems.forEach((itemTransaksi) => {
+            let nama = itemTransaksi.item.nama;
+            if (!barangTransaksiGrouped[nama]) {
+                barangTransaksiGrouped[nama] = {harga: Number(itemTransaksi.item.harga) || 0, jumlah: 0};
+            }
+            barangTransaksiGrouped[nama].jumlah += Number(itemTransaksi.jumlah) || 0;
+        });
+
+        //ubah ke bentuk list (array)
+        let listBarangTransaksi = Object.keys(barangTransaksiGrouped)
+                                    .map((key) => Object.assign({nama: key}, barangTransaksiGrouped[key]));
+
+        let transaksi = {pelanggan: this.state.pelanggan, waktu: this.state.tanggal, transaksi: listBarangTransaksi}
         try {
             let realm = this.props.navigation.state.params.realm;
             realm.write(() => {
@@ -240,7 +255,7 @@ export default class AddTransactionScreen extends Component {
             this.reset();
         }
         catch (error) {
-            ToastAndroid.show('Error: ' + error);
+            ToastAndroid.show('Error: ' + error, 10);
         }
     }
 
