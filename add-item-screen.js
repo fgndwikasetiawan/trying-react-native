@@ -11,7 +11,7 @@ export default class AddItemScreen extends Component {
         headerStyle: {
             backgroundColor: '#5af'
         },
-        headerTextStyle: {
+        headerTitleStyle: {
             color: 'white'
         },
         headerTintColor: 'white'

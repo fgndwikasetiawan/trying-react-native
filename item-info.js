@@ -20,7 +20,7 @@ export default class ItemInfo extends Component {
             if (this.props.type === ItemInfoTypes.TEXT) {
                 field = <TextInput 
                             underlineColorAndroid='transparent'
-                            style={[style.field, style.inputField, this.props.style]}
+                            style={[style.field, style.inputField, this.props.fieldStyle]}
                             value={this.props.value.toString()} 
                             onChangeText={(text) => this.props.onChange(text)}
                         />
@@ -43,13 +43,13 @@ export default class ItemInfo extends Component {
                             });
                         }
                     }>
-                    <Text style={[style.field, style.inputField, {paddingTop:15, paddingBottom: 4, paddingBottom: 10}]}>{toDisplay}</Text>
+                    <Text style={[style.field, style.inputField, {paddingTop:15, paddingBottom: 4, paddingBottom: 10}, this.props.fieldStyle]}>{toDisplay}</Text>
                 </TouchableOpacity>
             }
         }
         else {
             if (this.props.type === ItemInfoTypes.TEXT) {
-                field = <Text style={[style.field, this.props.style]}>{this.props.value}</Text>
+                field = <Text style={[style.field, this.props.fieldStyle]}>{this.props.value}</Text>
             }
             else if (this.props.type == ItemInfoTypes.DATE) {
                 let toDisplay;
@@ -60,12 +60,12 @@ export default class ItemInfo extends Component {
                 } else {
                     toDisplay = 'tidak ada';
                 }
-                field = <Text style={[style.field, this.props.style]}>{toDisplay}</Text>
+                field = <Text style={[style.field, this.props.fieldStyle]}>{toDisplay}</Text>
             }
         }
         return (
             <View>
-                <Text style={[style.fieldTitle]}>{this.props.name}</Text>
+                <Text style={[style.fieldTitle, this.props.titleStyle]}>{this.props.name}</Text>
                 {field}
             </View>
         );
